@@ -39,6 +39,27 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.listen(port, '192.168.2.1', () => {
+app.get('/user/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        // Lire les données existantes
+        const fileContents = await fs.readFile(dataFilePath, 'utf-8');
+        const data = JSON.parse(fileContents);
+
+        // Trouver l'utilisateur par ID
+        const user = data.find((u) => u.id === userId);
+
+        if (!user) {
+            res.status(404).json({ error: 'Utilisateur non trouvé' });
+        } else {
+            res.json(user);
+        }
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données : ', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.listen(port, '0.0.0.0', () => {
     console.log(`Example app listening on port ${port}`);
 });
