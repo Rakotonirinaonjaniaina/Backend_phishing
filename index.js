@@ -1,65 +1,61 @@
 const express = require('express');
-const fs = require('fs/promises');
-const path = require('path');
+const mysql = require('mysql2');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const dataFilePath = path.join(__dirname, 'data.json');
+// Configurez la connexion à la base de données MySQL
+const db = mysql.createConnection({
+    host: 'localhost:5432', // Adresse de votre serveur MySQL
+    user: 'postgres', // Nom d'utilisateur MySQL
+    password: 'postgres', // Mot de passe MySQL
+    database: 'express', // Nom de votre base de données MySQL
+  });
+  
 
-app.use(express.json());
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Methods', 'POST');
-    next();
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL: ', err);
+  } else {
+    console.log('Connected to MySQL database');
+  }
 });
+
+
 
 app.post('/login', async (req, res) => {
-    try {
-        // Lire les données existantes
-        let data = [];
-        try {
-            const fileContents = await fs.readFile(dataFilePath, 'utf-8');
-            data = JSON.parse(fileContents);
-        } catch (error) {
-            console.error('Error reading data file: ', error);
+    const { username, email } = req.body;
+
+    const sql = 'INSERT INTO users (username, email) VALUES (?, ?)';
+    const values = [username, email];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error writing to MySQL: ', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            console.log('Document successfully written to MySQL');
+            res.json({ message: 'Document successfully written!' });
         }
-
-        // Ajouter les nouvelles données
-        data.push(req.body);
-
-        // Écrire les données mises à jour dans le fichier
-        await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
-
-        res.json({ message: 'Document successfully written!' });
-    } catch (error) {
-        console.error('Error writing document: ', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    });
 });
+
 
 app.get('/user/:id', async (req, res) => {
-    try {
-        const userId = req.params.id;
-        // Lire les données existantes
-        const fileContents = await fs.readFile(dataFilePath, 'utf-8');
-        const data = JSON.parse(fileContents);
+    const userId = req.params.id;
 
-        // Trouver l'utilisateur par ID
-        const user = data.find((u) => u.id === userId);
+    const sql = 'SELECT * FROM users WHERE id = ?';
+    const values = [userId];
 
-        if (!user) {
-            res.status(404).json({ error: 'Utilisateur non trouvé' });
+    db.query(sql, values, (err, results) => {
+        if (err) {
+            console.error('Error retrieving data from MySQL: ', err);
+            res.status(500).json({ error: 'Internal Server Error' });
         } else {
-            res.json(user);
+            if (results.length === 0) {
+                res.status(404).json({ error: 'Utilisateur non trouvé' });
+            } else {
+                res.json(results[0]);
+            }
         }
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données : ', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Example app listening on port ${port}`);
+    });
 });
