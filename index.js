@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('./dbConfig'); // Importez la configuration de la base de données
+const db = require('../Backend_phishing/db'); 
 const app = express();
 const port = process.env.PORT || 3000;
 
