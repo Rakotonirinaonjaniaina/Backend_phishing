@@ -2,7 +2,8 @@
   "dependencies": {
     "express": "^4.18.2",
     "mongoose": "^8.0.0",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "pg": "^8.11.3"
   },
   "name": "online-game-finder-db",
   "version": "1.0.0",
