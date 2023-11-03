@@ -15,30 +15,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/login', async (req, res) => {
-    try {
-        // Lire les données existantes
-        let data = [];
-        try {
-            const fileContents = await fs.readFile(dataFilePath, 'utf-8');
-            data = JSON.parse(fileContents);
-        } catch (error) {
-            console.error('Error reading data file: ', error);
-        }
-
-        // Ajouter les nouvelles données
-        data.push(req.body);
-
-        // Écrire les données mises à jour dans le fichier
-        await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
-
-        res.json({ message: 'Document successfully written!' });
-    } catch (error) {
-        console.error('Error writing document: ', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 app.get('/user/:id', async (req, res) => {
     try {
         const userId = req.params.id;
