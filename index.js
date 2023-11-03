@@ -1,31 +1,21 @@
 const express = require('express');
-const mysql = require('mysql2');
+const db = require('./dbConfig'); // Importez la configuration de la base de données
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configurez la connexion à la base de données MySQL
-const db = mysql.createConnection({
-    host: 'localhost:5432', // Adresse de votre serveur MySQL
-    user: 'postgres', // Nom d'utilisateur MySQL
-    password: 'postgres', // Mot de passe MySQL
-    database: 'express', // Nom de votre base de données MySQL
-  });
-  
+app.use(express.json());
 
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL: ', err);
-  } else {
-    console.log('Connected to MySQL database');
-  }
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'POST');
+    next();
 });
-
-
 
 app.post('/login', async (req, res) => {
     const { username, email } = req.body;
 
-    const sql = 'INSERT INTO users (username, email) VALUES (?, ?)';
+    const sql = 'INSERT INTO utilisateur (username, email) VALUES (?, ?)';
     const values = [username, email];
 
     db.query(sql, values, (err, result) => {
@@ -43,7 +33,7 @@ app.post('/login', async (req, res) => {
 app.get('/user/:id', async (req, res) => {
     const userId = req.params.id;
 
-    const sql = 'SELECT * FROM users WHERE id = ?';
+    const sql = 'SELECT * FROM utilisateur WHERE id = ?';
     const values = [userId];
 
     db.query(sql, values, (err, results) => {
@@ -58,4 +48,8 @@ app.get('/user/:id', async (req, res) => {
             }
         }
     });
+});
+
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Example app listening on port ${port}`);
 });
